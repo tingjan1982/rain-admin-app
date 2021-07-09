@@ -1,24 +1,22 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@material-ui/core";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Paper, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@material-ui/core";
 import EditIcon from '@material-ui/icons/Edit';
+import { Alert } from "@material-ui/lab";
 import Head from 'next/head';
 import { useEffect, useState } from "react";
 import Layout from '../components/layout';
+import { getRequest, patchRequest } from "../lib/apiClient";
 
 export async function getServerSideProps() {
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_RAIN_HOST}/admin/clients`, {
-        'headers': {
-            'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+    const [data, error] = await getRequest('/admin/clients')
+
+    if (error) {
+        return {
+            props: {
+                notFound: true
+            }
         }
-    })
-
-    if (!res.ok) {
-        console.error(`Get response: ${res.statusText}`)
-        return [null, res]
     }
-
-    const data = await res.json()
-    console.log('data', data)
 
     return {
         props: {
@@ -30,41 +28,63 @@ export async function getServerSideProps() {
 export default function Client({ clients }) {
 
     const [toggleDialog, setToggleDialog] = useState(false)
+    const [toggleCNDialog, setToggleCNDialog] = useState(false)
+    const [toggleSnackbar, setToggleSnackbar] = useState(false)
+    const [message, setMessage] = useState({})
     const [editClient, setEditClient] = useState(null)
 
-    function openDialog(client) {
+    function openDialog(client, toggleDialogFunc) {
         setEditClient(client)
-        setToggleDialog(true)
+        toggleDialogFunc(true)
     }
 
-    function closeDialog() {
-        setToggleDialog(false)
+    function closeDialog(toggleDialogFunc) {
+        toggleDialogFunc(false)
+
     }
 
-    async function handleConfirm(newUsername) {
-        closeDialog()
-        console.log('Prepare for updating client account username', newUsername)
+    function openSnackbar(message, type) {
+        setMessage({ message: message, type: type })
+        setToggleSnackbar(true)
+    }
+
+    function closeSnackbar(event, reason) {
+        setToggleSnackbar(false)
+    }
+
+    async function handleUpdateUsername(newUsername, password) {
+        closeDialog(setToggleDialog)
+        console.log('Updating client account username', newUsername)
 
         const request = {
-            newUsername: newUsername
+            newUsername: newUsername,
+            password: password
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_RAIN_HOST}/admin/clients/${editClient.id}/username`, {
-            method: 'PATCH',
-            'headers': {
-                'Content-Type': 'application/json',
-                'x-api-key': process.env.NEXT_PUBLIC_API_KEY
-            },
-            body: JSON.stringify(request)
-        })
-    
-        console.debug(res)
+        const [data, error] = await patchRequest(`/admin/clients/${editClient.id}/username`, request)
 
-        if (!res.ok) {
-            console.error(`Get response: ${res.statusText}`)
-            return [null, res]
+        handleAlert(data, error)
+    }
+
+    async function handleUpdateClientName(clientName) {
+        closeDialog(setToggleCNDialog)
+        console.log('Updating client name', clientName)
+
+        const request = {
+            clientName: clientName
         }
-    
+
+        const [data, error] = await patchRequest(`/admin/clients/${editClient.id}/clientName`, request)
+
+        handleAlert(data, error)
+        
+    }
+
+    function handleAlert(data, error) {
+
+        const [message, type] = error ? ['Error', 'error'] : ['Data is saved', 'success']
+
+        openSnackbar(message, type)
     }
 
     return (
@@ -75,11 +95,24 @@ export default function Client({ clients }) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <Box>
+                <Snackbar open={toggleSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} autoHideDuration={4500} onClose={closeSnackbar}>
+                    <>
+                        <Alert onClose={closeSnackbar} severity={message.type}>
+                            {message.message}
+                        </Alert>
+                    </>
+                </Snackbar>
                 <EditUsernameDialog
                     editClient={editClient}
                     toggleDialog={toggleDialog}
-                    handleCancelAction={() => closeDialog()}
-                    handleConfirmAction={handleConfirm}
+                    closeDialog={() => closeDialog(setToggleDialog)}
+                    handleSubmit={handleUpdateUsername}
+                />
+                <EditClientNameDialog
+                    editClient={editClient}
+                    toggleDialog={toggleCNDialog}
+                    closeDialog={() => closeDialog(setToggleCNDialog)}
+                    handleSubmit={handleUpdateClientName}
                 />
                 <TableContainer component={Paper}>
                     <Table aria-label="clients">
@@ -97,10 +130,13 @@ export default function Client({ clients }) {
                                 <TableRow key={row.id}>
                                     <TableCell component="th" scope="row">
                                         {row.clientName} ({row.id})
+                                        <IconButton onClick={() => openDialog(row, setToggleCNDialog)} color="inherit">
+                                            <EditIcon />
+                                        </IconButton>
                                     </TableCell>
                                     <TableCell align="right">
                                         {row.username}
-                                        <IconButton onClick={() => openDialog(row)} color="inherit">
+                                        <IconButton onClick={() => openDialog(row, setToggleDialog)} color="inherit">
                                             <EditIcon />
                                         </IconButton>
                                     </TableCell>
@@ -120,22 +156,23 @@ export default function Client({ clients }) {
 
 function EditUsernameDialog(props) {
 
-    const { editClient, toggleDialog, handleCancelAction, handleConfirmAction } = props
-    const [newUsername, setNewUsername] = useState(null)
+    const { editClient, toggleDialog, closeDialog, handleSubmit } = props
+    const [newUsername, setNewUsername] = useState('')
+    const [password, setPassword] = useState('')
 
-    useEffect(() => {
-        setNewUsername(editClient?.username)        
+    useEffect(() => {        
+        setNewUsername(editClient?.username)
 
     }, [editClient])
 
     return (
-        <Dialog open={toggleDialog} onClose={handleCancelAction} aria-labelledby="form-dialog-title">
+        <Dialog open={toggleDialog} onClose={() => console.log('Closed')} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Update Client Account Username</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    You can update client account name.
+                    Enter a valid email as your username.
                 </DialogContentText>
-                <TextField                    
+                <TextField
                     margin="dense"
                     id={newUsername}
                     label="Username (Email)"
@@ -144,12 +181,61 @@ function EditUsernameDialog(props) {
                     fullWidth
                     onChange={(e) => setNewUsername(e.target.value)}
                 />
+                <TextField
+                    margin="dense"
+                    id="password"
+                    label="Enter password for authentication"
+                    type="password"
+                    value={password}
+                    fullWidth
+                    onChange={(e) => setPassword(e.target.value)}
+                />
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCancelAction} color="primary">
+                <Button onClick={closeDialog} color="primary">
                     Cancel
                 </Button>
-                <Button onClick={() => handleConfirmAction(newUsername)} color="primary">
+                <Button onClick={() => handleSubmit(newUsername, password)} color="primary">
+                    Confirm
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
+
+function EditClientNameDialog(props) {
+
+    const { editClient, toggleDialog, closeDialog, handleSubmit } = props
+    const [clientName, setClientName] = useState('')
+
+    useEffect(() => {
+        setClientName(editClient?.clientName)
+
+    }, [editClient])
+
+    return (
+        <Dialog open={toggleDialog} onClose={() => console.log('closed')} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">Update Client Name</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Enter a new client name
+                </DialogContentText>
+                <TextField
+                    margin="dense"
+                    id="clientName"
+                    label="Client Name"
+                    type="text"
+                    value={clientName}
+                    fullWidth
+                    onChange={(e) => setClientName(e.target.value)}
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={closeDialog} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={() => handleSubmit(clientName)} color="primary">
                     Confirm
                 </Button>
             </DialogActions>
