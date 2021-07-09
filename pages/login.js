@@ -1,25 +1,40 @@
-import React from 'react'
-import styles from '../styles/Home.module.css'
+import { Box, Button, TextField } from '@material-ui/core'
 import Container from '@material-ui/core/Container'
-import { Box, TextField, Button } from '@material-ui/core'
-import { createUser, findUser } from '../lib/user'
 import Router from 'next/router'
+import React from 'react'
+import { createUser, findUser } from '../lib/user'
+import { useUser } from '../lib/hooks'
+import styles from '../styles/Home.module.css'
 
 
 const createUserFunc = async () => {
-        
-    const userToCheck = { username: 'a', password: 'b' }
-    const user = await findUser(userToCheck)    
+
+    const defaultUser = { username: 'a', password: 'b' }
+    let user = await findUser(defaultUser)
     console.log('user', user)
 
-    if (user == 'undefined') {
-        await createUser(userToCheck)
-    }    
+    if (user == undefined) {
+        user = await createUser(defaultUser)
+    }
+
+    return user
 }
 
-export default function Login() {
+export async function getServerSideProps() {
 
-    createUserFunc()
+    const user = await createUserFunc()
+
+    return {
+        props: {
+            defaultUser: user
+        }
+    }
+}
+
+export default function Login({ defaultUser }) {
+
+    console.log('Created default user', defaultUser)
+    useUser({ redirectTo: '/', redirectIfFound: true })
 
     const handleLogin = async (e) => {
         e.preventDefault()
@@ -28,8 +43,7 @@ export default function Login() {
             username: e.currentTarget.username.value,
             password: e.currentTarget.password.value,
         }
-
-        console.log({ body })
+        
 
         try {
             const res = await fetch('/api/login', {
@@ -57,14 +71,16 @@ export default function Login() {
                 <h1 className={styles.title}>
                     Login
                 </h1>
-
+                
                 <form onSubmit={handleLogin}>
-                    <Container maxWidth="sm">                    
-                        <TextField variant="outlined" id="username" label="Username" required />
-                        <TextField variant="outlined" id="password" label="Password" type="password" required />
-                        <Button variant="contained" color="primary" type="submit">
-                            Login
-                        </Button>
+                    <Container maxWidth="sm">
+                        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                            <TextField variant="outlined" id="username" label="Username" required />
+                            <TextField variant="outlined" id="password" label="Password" type="password" required />
+                            <Button variant="contained" color="primary" type="submit">
+                                Login
+                            </Button>
+                        </Box>
                     </Container>
 
                 </form>

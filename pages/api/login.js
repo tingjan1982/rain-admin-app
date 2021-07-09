@@ -19,7 +19,7 @@ passport.use(localStrategy)
 export default nextConnect()
     .use(passport.initialize())
     .post(async (req, res) => {
-        try {
+        try {            
             const user = await authenticate('local', req, res)
             // session is the payload to save in the token, it may contain basic info about the user
             const session = { ...user }

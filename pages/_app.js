@@ -19,7 +19,7 @@ export default function App(props) {
     return (
         <React.Fragment>
             <Head>
-                <title>My page</title>
+                <title>Rain _App</title>
                 <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
             </Head>
             <ThemeProvider theme={theme}>
