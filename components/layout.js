@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Typography, Button, Divider, Box, Drawer, List, ListItem, ListItemText, makeStyles, IconButton } from '@material-ui/core'
+import { AppBar, Toolbar, Typography, Button, Divider, Box, Drawer, List, ListItem, ListItemText, makeStyles, IconButton, Container } from '@material-ui/core'
 import MenuIcon from '@material-ui/icons/Menu'
 import Head from 'next/head'
 import Image from 'next/image'
@@ -95,7 +95,7 @@ export default function Layout({ children, home }) {
                                         <ListItemText>Client List</ListItemText>
                                     </ListItem>
                                 </Link>
-                                <Link href="/subscriptions">
+                                <Link href="/clientSubscriptions">
                                     <ListItem button>
                                         <ListItemText>Client Subscriptions</ListItemText>
                                     </ListItem>
@@ -112,7 +112,9 @@ export default function Layout({ children, home }) {
                     </Drawer>
                 </header>
                 <main>
-                    {children}
+                    <Container>
+                        {children}
+                    </Container>
                 </main>
             </div>
             <footer className={styles.footer}>
