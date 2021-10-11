@@ -4,6 +4,8 @@ import Head from 'next/head';
 import PropTypes from 'prop-types';
 import React from 'react';
 import theme from '../styles/theme';
+import { UserProvider } from '@auth0/nextjs-auth0';
+
 
 export default function App(props) {
     const { Component, pageProps } = props
@@ -19,13 +21,15 @@ export default function App(props) {
     return (
         <React.Fragment>
             <Head>
-                <title>Rain _App</title>
+                <title>Rain App</title>
                 <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
             </Head>
             <ThemeProvider theme={theme}>
                 {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
                 <CssBaseline />
-                <Component {...pageProps} />
+                <UserProvider>
+                    <Component {...pageProps} />
+                </UserProvider>
             </ThemeProvider>
         </React.Fragment>
     );

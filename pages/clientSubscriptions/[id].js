@@ -1,5 +1,5 @@
 import MomentUtils from "@date-io/moment"
-import { Box, Button, Card, CardActions, CardContent, Checkbox, List, ListItem, ListItemIcon, ListItemSecondaryAction, ListItemText, Paper, Switch, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@material-ui/core"
+import { Box, Button, Card, CardActions, CardContent, List, ListItem, ListItemSecondaryAction, ListItemText, Paper, Switch, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@material-ui/core"
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers"
 import moment from 'moment'
 import Head from "next/head"
@@ -119,9 +119,9 @@ export default function ClientSubscriptions({ subscription, invoices, client }) 
         setClientInvoices(invoices.results)
     }
 
-    async function deleteInvoice(subId, invoiceIdentifier) {
+    async function activateInvoice(subId, invoiceIdentifier) {
 
-        const [data, error] = await deleteRequest(`/admin/invoices/${invoiceId}/activate`)
+        const [data, error] = await postRequest(`/admin/invoices/${invoiceIdentifier}/activate`)
 
         const [invoices, invoicesError] = await getRequest(`/admin/clientSubscriptions/${subId}/invoices`)
 

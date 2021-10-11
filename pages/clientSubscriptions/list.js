@@ -11,6 +11,7 @@ import Layout from "../../components/layout"
 import { getRequest } from "../../lib/apiClient"
 import { formatDate } from "../../lib/datetime"
 import { makeStyles } from "@material-ui/styles"
+import { withPageAuthRequired } from '@auth0/nextjs-auth0';
 
 
 export async function getServerSideProps() {
@@ -33,7 +34,7 @@ export async function getServerSideProps() {
 }
 
 
-export default function ClientSubscriptions({ subscriptions }) {
+export default withPageAuthRequired(function ClientSubscriptions({ subscriptions }) {
 
     const styles = makeStyles((theme) => ({
         fab: {
@@ -88,7 +89,7 @@ export default function ClientSubscriptions({ subscriptions }) {
             </Box>
         </Layout>
     )
-}
+})
 
 function SubscriptionRow(props) {
 

@@ -5,6 +5,7 @@ import Head from 'next/head';
 import { useEffect, useState } from "react";
 import Layout from '../components/layout';
 import { getRequest, patchRequest } from "../lib/apiClient";
+import { withPageAuthRequired } from '@auth0/nextjs-auth0';
 
 export async function getServerSideProps() {
 
@@ -25,7 +26,7 @@ export async function getServerSideProps() {
     }
 }
 
-export default function Client({ clients }) {
+export default withPageAuthRequired(function Client({ clients }) {
 
     const [toggleDialog, setToggleDialog] = useState(false)
     const [toggleCNDialog, setToggleCNDialog] = useState(false)
@@ -152,7 +153,7 @@ export default function Client({ clients }) {
         </Layout >
     )
 
-}
+})
 
 function EditUsernameDialog(props) {
 

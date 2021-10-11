@@ -70,11 +70,12 @@ export default function Layout({ children, home }) {
                             <Typography variant="h6">
                                 Dashboard
                             </Typography>
-                            <Link href="/login">
+                            <a href="/api/auth/login">
                                 <Button className={classes.right} color="inherit">
                                     Login
                                 </Button>
-                            </Link>
+                            </a>
+                            <a href="/api/auth/logout">Logout</a>
                         </Toolbar>
                     </AppBar>
                     <Drawer
@@ -90,12 +91,17 @@ export default function Layout({ children, home }) {
                                         <ListItemText>Home</ListItemText>
                                     </ListItem>
                                 </Link>
+                                <Link href="/user">
+                                    <ListItem button>
+                                        <ListItemText>User Profile</ListItemText>
+                                    </ListItem>
+                                </Link>
                                 <Link href="/clients">
                                     <ListItem button>
                                         <ListItemText>Client List</ListItemText>
                                     </ListItem>
                                 </Link>
-                                <Link href="/clientSubscriptions">
+                                <Link href="/clientSubscriptions/list">
                                     <ListItem button>
                                         <ListItemText>Client Subscriptions</ListItemText>
                                     </ListItem>
