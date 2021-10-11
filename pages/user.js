@@ -1,4 +1,5 @@
 import { useUser } from '@auth0/nextjs-auth0';
+import Image from 'next/image';
 import React from 'react';
 
 export default function Profile() {
@@ -10,7 +11,7 @@ export default function Profile() {
     return (
         user && (
             <div>
-                <img src={user.picture} alt={user.name} />
+                <Image src={user.picture} alt={user.name} width="200" height="200"/>
                 <h2>{user.name}</h2>
                 <p>{user.email}</p>
             </div>
