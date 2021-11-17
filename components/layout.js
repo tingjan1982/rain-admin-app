@@ -1,4 +1,5 @@
-import { AppBar, Toolbar, Typography, Button, Divider, Box, Drawer, List, ListItem, ListItemText, makeStyles, IconButton, Container } from '@material-ui/core'
+import { useUser } from '@auth0/nextjs-auth0'
+import { AppBar, Button, Container, Divider, Drawer, IconButton, List, ListItem, ListItemText, makeStyles, Toolbar, Typography } from '@material-ui/core'
 import MenuIcon from '@material-ui/icons/Menu'
 import Head from 'next/head'
 import Image from 'next/image'
@@ -19,7 +20,7 @@ export default function Layout({ children, home }) {
 
         },
         appBar: {
-
+            //position: 'static'
         },
         right: {
             flex: 1,
@@ -42,6 +43,10 @@ export default function Layout({ children, home }) {
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
+
+    const { user, error, isLoading } = useUser()
+
+    const hasUser = !isLoading && !error && user
 
     return (
         <>
@@ -70,12 +75,24 @@ export default function Layout({ children, home }) {
                             <Typography variant="h6">
                                 Dashboard
                             </Typography>
-                            <a href="/api/auth/login">
-                                <Button className={classes.right} color="inherit">
-                                    Login
-                                </Button>
-                            </a>
-                            <a href="/api/auth/logout">Logout</a>
+                            {
+                                hasUser && (
+                                    <>
+                                        <p>{user.email}</p>
+                                        <a href="/api/auth/logout">Logout</a>
+                                    </>
+                                )
+                            }
+                            {
+                                !hasUser && (
+                                    <a href="/api/auth/login">
+                                        <Button className={classes.right} color="inherit">
+                                            Login
+                                        </Button>
+                                    </a>
+                                )
+                            }
+
                         </Toolbar>
                     </AppBar>
                     <Drawer
